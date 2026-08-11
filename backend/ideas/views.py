@@ -44,6 +44,18 @@ class ArchiveIdeaAPIView(APIView):
 
         return Response(serializer.data)
 
+class UnarchiveIdeaAPIView(APIView):
+    def post(self, request, pk):
+        idea = get_object_or_404(Idea, pk=pk)
+
+        idea.is_archived = False
+        idea.archived_at = None
+        idea.save()
+
+        serializer = IdeaSerializer(idea)
+
+        return Response(serializer.data)
+
 
 # Student APIs
 class StudentListCreateAPIView(generics.ListCreateAPIView):
@@ -51,7 +63,7 @@ class StudentListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = StudentSerializer
 
 
-class StudentDetailAPIView(generics.RetrieveUpdateAPIView):
+class StudentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
 
@@ -61,6 +73,6 @@ class MeetingListCreateAPIView(generics.ListCreateAPIView):
     queryset = Meeting.objects.all()
     serializer_class = MeetingSerializer
 
-class MeetingDetailAPIView(generics.RetrieveUpdateAPIView):
+class MeetingDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Meeting.objects.all()
     serializer_class = MeetingSerializer

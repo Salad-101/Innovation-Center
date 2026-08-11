@@ -4,6 +4,7 @@ from .views import (
     IdeaListCreateAPIView,
     IdeaDetailAPIView,
     ArchiveIdeaAPIView,
+    UnarchiveIdeaAPIView,
     StudentListCreateAPIView,
     StudentDetailAPIView,
     MeetingListCreateAPIView,
@@ -16,6 +17,7 @@ urlpatterns = [
     path("ideas/", IdeaListCreateAPIView.as_view(),),
     path("ideas/<int:pk>/", IdeaDetailAPIView.as_view(),),
     path("ideas/<int:pk>/archive/", ArchiveIdeaAPIView.as_view(),),
+    path("ideas/<int:pk>/unarchive/", UnarchiveIdeaAPIView.as_view()),
 
     # Students
     path("students/", StudentListCreateAPIView.as_view(),),
