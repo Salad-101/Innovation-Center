@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { useIdeasStore } from "./stores/ideas"
 import { getLocalToday } from "./utils/formatters"
 
@@ -15,7 +15,17 @@ import CreateIdeaModal from "./components/modals/CreateIdeaModal.vue"
 const store = useIdeasStore()
 
 const currentView = ref("kanban")
-const darkMode = ref(true)
+
+const darkMode = ref(
+    localStorage.getItem("innovation-center-dark-mode") === "true"
+)
+
+watch(darkMode, (value) => {
+    localStorage.setItem(
+        "innovation-center-dark-mode",
+        value
+    )
+})
 
 const selectedIdea = ref(null)
 

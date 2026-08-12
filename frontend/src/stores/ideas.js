@@ -3,6 +3,25 @@ import { defineStore } from "pinia"
 
 const API_URL = "http://127.0.0.1:8000/api"
 
+// Updates `existing` in place instead of replacing it in the list. This
+// matters: if we replaced the array slot with the fresh server object
+// (`list[index] = item`), any other reference to the old object — like
+// `selectedIdea` in the idea modal — would silently stop reflecting
+// further changes, because it would keep pointing at a swapped-out object
+// no longer connected to the reactive array. Mutating in place means every
+// held reference (props, computeds, whatever) stays live forever.
+function upsertById(list, item) {
+    const existing = list.find(current => current.id === item.id)
+
+    if (existing) {
+        Object.assign(existing, item)
+        return existing
+    }
+
+    list.push(item)
+    return item
+}
+
 export const useIdeasStore = defineStore("ideas", () => {
 
     // ============================================================
@@ -132,12 +151,7 @@ export const useIdeasStore = defineStore("ideas", () => {
             }
 
             const updatedIdea = await response.json()
-            const index = ideas.value.findIndex(current => current.id === updatedIdea.id)
-            if (index !== -1) {
-                ideas.value[index] = updatedIdea
-            }
-
-            return updatedIdea
+            return upsertById(ideas.value, updatedIdea)
 
         } catch (err) {
             console.error(err)
@@ -166,12 +180,7 @@ export const useIdeasStore = defineStore("ideas", () => {
             }
 
             const updatedIdea = await response.json()
-            const index = ideas.value.findIndex(current => current.id === updatedIdea.id)
-            if (index !== -1) {
-                ideas.value[index] = updatedIdea
-            }
-
-            return updatedIdea
+            return upsertById(ideas.value, updatedIdea)
 
         } catch (err) {
             console.error(err)
@@ -191,12 +200,7 @@ export const useIdeasStore = defineStore("ideas", () => {
             }
 
             const updatedIdea = await response.json()
-            const index = ideas.value.findIndex(current => current.id === updatedIdea.id)
-            if (index !== -1) {
-                ideas.value[index] = updatedIdea
-            }
-
-            return updatedIdea
+            return upsertById(ideas.value, updatedIdea)
 
         } catch (err) {
             console.error(err)
@@ -215,18 +219,7 @@ export const useIdeasStore = defineStore("ideas", () => {
             }
 
             const unarchivedIdea = await response.json()
-
-            // The idea already exists in `ideas` (just flagged is_archived) —
-            // replace it in place rather than pushing a duplicate entry.
-            const index = ideas.value.findIndex(current => current.id === unarchivedIdea.id)
-
-            if (index !== -1) {
-                ideas.value[index] = unarchivedIdea
-            } else {
-                ideas.value.push(unarchivedIdea)
-            }
-
-            return unarchivedIdea
+            return upsertById(ideas.value, unarchivedIdea)
 
         } catch (err) {
             console.error(err)
@@ -268,6 +261,11 @@ export const useIdeasStore = defineStore("ideas", () => {
             return
         }
 
+        // Optimistic update, same as status/priority — the modal's checkboxes
+        // should react the instant you click, not after the round-trip.
+        const oldStudents = idea.students
+        idea.students = studentIds
+
         try {
             const response = await fetch(`${API_URL}/ideas/${idea.id}/`, {
                 method: "PATCH",
@@ -280,15 +278,11 @@ export const useIdeasStore = defineStore("ideas", () => {
             }
 
             const updatedIdea = await response.json()
-            const index = ideas.value.findIndex(current => current.id === updatedIdea.id)
-            if (index !== -1) {
-                ideas.value[index] = updatedIdea
-            }
-
-            return updatedIdea
+            return upsertById(ideas.value, updatedIdea)
 
         } catch (err) {
             console.error(err)
+            idea.students = oldStudents
             error.value = "Failed to update idea students."
         }
     }
@@ -316,17 +310,7 @@ export const useIdeasStore = defineStore("ideas", () => {
             }
 
             const savedStudent = await response.json()
-
-            if (existingId) {
-                const index = students.value.findIndex(student => student.id === savedStudent.id)
-                if (index !== -1) {
-                    students.value[index] = savedStudent
-                }
-            } else {
-                students.value.push(savedStudent)
-            }
-
-            return savedStudent
+            return upsertById(students.value, savedStudent)
 
         } catch (err) {
             console.error(err)
@@ -385,17 +369,7 @@ export const useIdeasStore = defineStore("ideas", () => {
             }
 
             const savedMeeting = await response.json()
-
-            if (existingId) {
-                const index = meetings.value.findIndex(meeting => meeting.id === savedMeeting.id)
-                if (index !== -1) {
-                    meetings.value[index] = savedMeeting
-                }
-            } else {
-                meetings.value.push(savedMeeting)
-            }
-
-            return savedMeeting
+            return upsertById(meetings.value, savedMeeting)
 
         } catch (err) {
             console.error(err)
