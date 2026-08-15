@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Student, Idea, Meeting
+from .models import Student, Idea, Meeting, IdeaChangeLog
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -24,6 +24,20 @@ class MeetingSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class IdeaChangeLogSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = IdeaChangeLog
+        fields = [
+            "id",
+            "idea",
+            "field",
+            "old_value",
+            "new_value",
+            "changed_at",
+        ]
+
+
 class IdeaSerializer(serializers.ModelSerializer):
 
     students = serializers.PrimaryKeyRelatedField(
@@ -32,6 +46,11 @@ class IdeaSerializer(serializers.ModelSerializer):
     )
 
     meetings = MeetingSerializer(
+        many=True,
+        read_only=True
+    )
+
+    change_logs = IdeaChangeLogSerializer(
         many=True,
         read_only=True
     )

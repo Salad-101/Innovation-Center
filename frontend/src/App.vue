@@ -7,6 +7,7 @@ import AppHeader from "./components/layout/AppHeader.vue"
 import KanbanBoard from "./components/kanban/KanbanBoard.vue"
 import StudentsTable from "./components/students/StudentsTable.vue"
 import MeetingsView from "./components/meetings/MeetingsView.vue"
+import CalendarView from "./components/calendar/CalendarView.vue"
 import IdeaDetailModal from "./components/modals/IdeaDetailModal.vue"
 import StudentModal from "./components/modals/StudentModal.vue"
 import MeetingModal from "./components/modals/MeetingModal.vue"
@@ -37,6 +38,7 @@ const editingStudent = ref(null) // null = creating
 const showMeetingModal = ref(false)
 const editingMeeting = ref(null) // null = creating
 const meetingIdeaId = ref(null) // pre-selected idea when scheduling from a card/modal
+const meetingInitialDate = ref(null) // pre-selected date when scheduling from the calendar
 
 const upcomingMeetingsCount = computed(() =>
     store.meetings.filter(meeting => meeting.date >= getLocalToday()).length
@@ -47,7 +49,7 @@ function handleCreate() {
         showCreateIdeaModal.value = true
     } else if (currentView.value === "students") {
         openCreateStudent()
-    } else if (currentView.value === "meetings") {
+    } else if (currentView.value === "meetings" || currentView.value === "calendar") {
         openCreateMeeting()
     }
 }
@@ -75,15 +77,17 @@ function closeStudentModal() {
     editingStudent.value = null
 }
 
-function openCreateMeeting(idea = null) {
+function openCreateMeeting(idea = null, date = null) {
     editingMeeting.value = null
     meetingIdeaId.value = idea?.id ?? null
+    meetingInitialDate.value = date
     showMeetingModal.value = true
 }
 
 function openEditMeeting(meeting) {
     editingMeeting.value = meeting
     meetingIdeaId.value = null
+    meetingInitialDate.value = null
     showMeetingModal.value = true
 }
 
@@ -91,6 +95,7 @@ function closeMeetingModal() {
     showMeetingModal.value = false
     editingMeeting.value = null
     meetingIdeaId.value = null
+    meetingInitialDate.value = null
 }
 
 async function handleDeleteMeeting(meeting) {
@@ -142,6 +147,14 @@ onMounted(store.fetchData)
                 <MeetingsView @edit-meeting="openEditMeeting" @delete-meeting="handleDeleteMeeting" />
             </template>
 
+            <template v-else-if="currentView === 'calendar'">
+                <CalendarView
+                    @edit-meeting="openEditMeeting"
+                    @schedule-meeting="openCreateMeeting"
+                    @delete-meeting="handleDeleteMeeting"
+                />
+            </template>
+
             <IdeaDetailModal
                 v-if="selectedIdea"
                 :idea="selectedIdea"
@@ -153,7 +166,13 @@ onMounted(store.fetchData)
 
             <StudentModal v-if="showStudentModal" :student="editingStudent" @close="closeStudentModal" />
 
-            <MeetingModal v-if="showMeetingModal" :meeting="editingMeeting" :idea-id="meetingIdeaId" @close="closeMeetingModal" />
+            <MeetingModal
+                v-if="showMeetingModal"
+                :meeting="editingMeeting"
+                :idea-id="meetingIdeaId"
+                :initial-date="meetingInitialDate"
+                @close="closeMeetingModal"
+            />
 
             <CreateIdeaModal v-if="showCreateIdeaModal" @close="showCreateIdeaModal = false" />
 

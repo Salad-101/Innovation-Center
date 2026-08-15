@@ -1,7 +1,7 @@
 <script setup>
 import { useIdeasStore } from "../../stores/ideas"
-import { getInitials, formatDate, formatTime, getPriorityClass } from "../../utils/formatters"
-import { STATUSES, STATUS_LABELS, PRIORITIES, PRIORITY_LABELS } from "../../constants/ideas"
+import { getInitials, formatDate, formatTime, formatDateTime, getPriorityClass } from "../../utils/formatters"
+import { STATUSES, STATUS_LABELS, PRIORITIES, PRIORITY_LABELS, FIELD_LABELS } from "../../constants/ideas"
 
 const props = defineProps({
     idea: { type: Object, required: true },
@@ -27,6 +27,28 @@ async function archive() {
     if (archived) {
         emit("close")
     }
+}
+
+// Renders a human-readable line for one IdeaChangeLog entry. status/priority
+// values are stored as raw codes (e.g. "REVIEW"), so translate those through
+// the shared label maps; students/title/description already arrive as
+// display-ready text from the API.
+function describeChange(log) {
+    const label = FIELD_LABELS[log.field] || log.field
+
+    if (log.field === "status") {
+        return `${label} changed from "${STATUS_LABELS[log.old_value] ?? log.old_value}" to "${STATUS_LABELS[log.new_value] ?? log.new_value}"`
+    }
+
+    if (log.field === "priority") {
+        return `${label} changed from "${PRIORITY_LABELS[log.old_value] ?? log.old_value}" to "${PRIORITY_LABELS[log.new_value] ?? log.new_value}"`
+    }
+
+    if (log.field === "is_archived") {
+        return log.new_value === "True" ? "Idea archived" : "Idea unarchived"
+    }
+
+    return `${label} changed from "${log.old_value || "(empty)"}" to "${log.new_value || "(empty)"}"`
 }
 </script>
 
@@ -137,6 +159,25 @@ async function archive() {
 
                     <div v-else class="rounded-xl border border-dashed border-slate-200 p-5 text-center dark:border-white/[0.06]">
                         <p class="text-xs text-slate-400">No meetings scheduled.</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="mb-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">History</h3>
+
+                    <div v-if="idea.change_logs?.length" class="space-y-2">
+                        <div
+                            v-for="log in idea.change_logs"
+                            :key="log.id"
+                            class="flex items-start justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-white/[0.06]"
+                        >
+                            <p class="text-xs text-slate-600 dark:text-slate-300">{{ describeChange(log) }}</p>
+                            <span class="shrink-0 text-[10px] text-slate-400">{{ formatDateTime(log.changed_at) }}</span>
+                        </div>
+                    </div>
+
+                    <div v-else class="rounded-xl border border-dashed border-slate-200 p-5 text-center dark:border-white/[0.06]">
+                        <p class="text-xs text-slate-400">No changes yet.</p>
                     </div>
                 </section>
 

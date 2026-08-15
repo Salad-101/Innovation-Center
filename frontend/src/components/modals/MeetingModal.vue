@@ -5,6 +5,7 @@ import { useIdeasStore } from "../../stores/ideas"
 const props = defineProps({
     meeting: { type: Object, default: null }, // null = creating a new meeting
     ideaId: { type: [Number, String], default: null }, // pre-select an idea when scheduling from the idea modal
+    initialDate: { type: String, default: null }, // pre-fill date when scheduling from a calendar day
 })
 
 const emit = defineEmits(["close"])
@@ -15,7 +16,7 @@ const isEditing = computed(() => !!props.meeting)
 
 const form = reactive({
     idea: props.meeting?.idea ?? props.ideaId ?? "",
-    date: props.meeting?.date ?? "",
+    date: props.meeting?.date ?? props.initialDate ?? "",
     time: props.meeting?.time ?? "",
     location: props.meeting?.location ?? "",
     notes: props.meeting?.notes ?? "",

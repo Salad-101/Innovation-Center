@@ -8,12 +8,13 @@ defineProps({
 
 const emit = defineEmits(["change-view", "toggle-dark-mode", "create"])
 
-const views = ["kanban", "students", "meetings"]
+const views = ["kanban", "students", "meetings", "calendar"]
 
 const createLabel = {
     kanban: "+ New Idea",
     students: "+ Add Student",
     meetings: "+ Schedule Meeting",
+    calendar: "+ Schedule Meeting",
 }
 </script>
 

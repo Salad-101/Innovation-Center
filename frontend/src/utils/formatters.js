@@ -38,6 +38,41 @@ export function formatTime(time) {
     }).format(date)
 }
 
+export function formatDateTime(datetime) {
+    if (!datetime) {
+        return ""
+    }
+
+    return new Intl.DateTimeFormat("en", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(new Date(datetime))
+}
+
+// Deterministic color per idea so the same idea always renders the same
+// chip color across the calendar, regardless of sort order.
+const IDEA_COLOR_PALETTE = [
+    "bg-indigo-500",
+    "bg-emerald-500",
+    "bg-amber-500",
+    "bg-rose-500",
+    "bg-sky-500",
+    "bg-purple-500",
+    "bg-teal-500",
+    "bg-orange-500",
+]
+
+export function getIdeaColor(ideaId) {
+    if (ideaId === null || ideaId === undefined) {
+        return IDEA_COLOR_PALETTE[0]
+    }
+
+    return IDEA_COLOR_PALETTE[Number(ideaId) % IDEA_COLOR_PALETTE.length]
+}
+
 // Local calendar date as YYYY-MM-DD. `<input type="date">` values are
 // local-calendar dates, so "today" comparisons must use local time too —
 // `new Date().toISOString()` returns UTC and drifts a day around midnight

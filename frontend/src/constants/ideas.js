@@ -23,3 +23,14 @@ export const PRIORITY_LABELS = {
     MEDIUM: "Medium",
     HIGH: "High",
 }
+
+// Human-readable labels for IdeaChangeLog.field values, used in the
+// idea's History section.
+export const FIELD_LABELS = {
+    title: "Title",
+    description: "Description",
+    status: "Status",
+    priority: "Priority",
+    students: "Students",
+    is_archived: "Archive status",
+}

@@ -86,3 +86,32 @@ class Meeting(models.Model):
 
     def __str__(self):
         return f"{self.idea.title} - {self.date}"
+
+
+class IdeaChangeLog(models.Model):
+    """Audit trail entry for a single field change on an Idea.
+
+    One row per changed field per save, so a single PATCH that updates
+    both `status` and `priority` produces two rows, each independently
+    timestamped.
+    """
+
+    idea = models.ForeignKey(
+        Idea,
+        on_delete=models.CASCADE,
+        related_name="change_logs"
+    )
+
+    field = models.CharField(max_length=50)
+
+    old_value = models.TextField(blank=True, null=True)
+
+    new_value = models.TextField(blank=True, null=True)
+
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-changed_at"]
+
+    def __str__(self):
+        return f"{self.idea.title}: {self.field} changed at {self.changed_at}"
