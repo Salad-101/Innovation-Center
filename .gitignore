@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 backend/staticfiles/
+packaging/Output/
 
 # VS Code-generated files
 .vscode/
