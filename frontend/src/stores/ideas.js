@@ -1,7 +1,7 @@
 import { computed, ref } from "vue"
 import { defineStore } from "pinia"
 
-const API_URL = "http://127.0.0.1:8000/api"
+const API_URL = "/api"
 
 // Updates `existing` in place instead of replacing it in the list. This
 // matters: if we replaced the array slot with the fresh server object
