@@ -10,22 +10,39 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Where the built frontend (frontend/dist, produced by `npm run build`) lives.
+FRONTEND_DIST = BASE_DIR.parent / 'frontend' / 'dist'
+
+# Writable location for db.sqlite3 / collected static files. main.py sets
+# ICENTER_DATA_DIR to a per-user AppData folder when running as a packaged
+# .exe (the install folder itself may not be writable). During normal
+# development (manage.py runserver, or main.py run unfrozen) this falls
+# back to the backend/ folder, same as before.
+DATA_DIR = Path(os.environ.get('ICENTER_DATA_DIR', BASE_DIR))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-o-k!wcfvj*!eu-0w_gb_g$40xvs@1)nz0*sa-9viwgk@5#00*k'
+# For a locally-run desktop app this is low-risk, but if this project ever
+# gets deployed to a real server, move this to an environment variable.
+SECRET_KEY = os.environ.get(
+    'ICENTER_SECRET_KEY',
+    'django-insecure-o-k!wcfvj*!eu-0w_gb_g$40xvs@1)nz0*sa-9viwgk@5#00*k',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('ICENTER_DEBUG', '1') == '1'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -42,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -81,7 +99,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
     }
 }
 
@@ -120,4 +138,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+# Django's own static files (admin panel, DRF browsable API). Collected into
+# DATA_DIR/staticfiles by `manage.py collectstatic`, which main.py runs
+# automatically on every startup, then served by WhiteNoise.
 STATIC_URL = 'static/'
+STATIC_ROOT = DATA_DIR / 'staticfiles'
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+
+# The built Vue app (frontend/dist/index.html + frontend/dist/assets/*).
+# WhiteNoise serves these directly from the site root, e.g. a request for
+# "/" serves index.html and "/assets/index-XXXX.js" serves that file,
+# because Vite emits root-relative asset paths. Only enabled once the
+# frontend has actually been built.
+if FRONTEND_DIST.exists():
+    WHITENOISE_ROOT = FRONTEND_DIST
+    WHITENOISE_INDEX_FILE = True
