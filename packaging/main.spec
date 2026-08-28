@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""
+r"""
 PyInstaller spec for Innovation Center.
 
 BEFORE BUILDING:
@@ -11,7 +11,7 @@ BEFORE BUILDING:
      everything except pyinstaller itself: `uv pip install pyinstaller`)
 
 BUILD (from the project root):
-    pyinstaller packaging\main.spec --noconfirm --clean
+    pyinstaller packaging/main.spec --noconfirm --clean
 
 Output: dist/InnovationCenter/  (an ONEDIR build - more reliable to freeze
 than --onefile for a Django app, and starts noticeably faster). This whole
@@ -24,7 +24,7 @@ runtime (by name, and by listing a directory) rather than through normal
 frequently mis-packages this into the frozen archive in a way that breaks
 migrations. So instead of asking PyInstaller to freeze our own project
 code, we explicitly exclude it and copy backend/ and frontend/dist as
-plain files (see `datas` below) — main.py already puts backend/ on
+plain files (see `datas` below) - main.py already puts backend/ on
 sys.path at startup, so Django imports it exactly like it would from
 source. Only third-party libraries get frozen into the archive.
 """
@@ -32,7 +32,10 @@ source. Only third-party libraries get frozen into the archive.
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_all
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# Spec files are exec()'d by PyInstaller, not run as a normal module, so
+# there is no __file__ here - PyInstaller injects SPECPATH instead (the
+# directory containing this .spec file).
+PROJECT_ROOT = Path(SPECPATH).resolve().parent
 BACKEND_DIR = PROJECT_ROOT / "backend"
 FRONTEND_DIST = PROJECT_ROOT / "frontend" / "dist"
 
